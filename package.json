@@ -4,7 +4,8 @@
   "description": "Intelligent AI Chat Assistant with Real-Time Streaming and Dynamic Tone Toggle for Quantiphi Vibe Coding Round",
   "scripts": {
     "install:all": "npm install && cd server && npm install && cd ../client && npm install",
-    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "dev": "node run-dev.js",
+    "dev:concurrent": "concurrently \"npm run server\" \"npm run client\"",
     "server": "cd server && npm run dev",
     "client": "cd client && npm run dev",
     "start": "cd server && npm start"
