@@ -104,10 +104,10 @@ export default function ChatInterface({
             <h2 className="text-xs md:text-sm font-semibold text-slate-100 truncate max-w-xs md:max-w-md">
               {displayTitle}
             </h2>
-            <div className="flex items-center gap-1.5">
+            {/* <div className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
               <span className="text-[10px] text-slate-400">Stream Engine Active</span>
-            </div>
+            </div> */}
           </div>
         </div>
 
@@ -229,10 +229,10 @@ export default function ChatInterface({
             </div>
           </form>
 
-          <div className="flex items-center justify-between mt-1 px-1 text-[10px] text-slate-500">
+          {/* <div className="flex items-center justify-between mt-1 px-1 text-[10px] text-slate-500">
             <span>Powered by Gemini API &amp; Server-Sent Events</span>
             <span className="hidden sm:inline">Shift + Enter for new line</span>
-          </div>
+          </div> */}
         </div>
       </footer>
 
