@@ -6,6 +6,7 @@ import {
   Trash2,
   Bot,
   PanelLeftClose,
+  X,
 } from 'lucide-react';
 
 export default function HistorySidebar({
@@ -18,6 +19,7 @@ export default function HistorySidebar({
   onToggleSidebar,
 }) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   // Filter conversations in real time
   const filteredConversations = conversations.filter((c) => {
@@ -59,7 +61,7 @@ export default function HistorySidebar({
         />
       )}
 
-      {/* Sidebar container with smooth hide/show toggle for desktop and mobile (Default: OPEN) */}
+      {/* Sidebar container with smooth hide/show toggle for desktop and mobile */}
       <aside
         className={`fixed lg:static top-0 left-0 bottom-0 z-50 flex flex-col bg-slate-900 border-r border-slate-800 transition-all duration-300 ease-in-out flex-shrink-0 ${
           isOpen
@@ -85,10 +87,10 @@ export default function HistorySidebar({
               </div>
             </div>
 
-            {/* Toggle Button to Hide Sidebar (Like ChatGPT / Gemini) */}
+            {/* Toggle Button to Hide Sidebar */}
             <button
               onClick={onToggleSidebar}
-              title="Close Sidebar"
+              title="Hide Sidebar"
               className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer pointer-events-auto"
             >
               <PanelLeftClose className="w-4 h-4" />
@@ -173,12 +175,10 @@ export default function HistorySidebar({
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (window.confirm('Delete this conversation?')) {
-                          onDeleteConversation(conv.id);
-                        }
+                        setDeleteTarget(conv);
                       }}
                       title="Delete Conversation"
-                      className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md hover:bg-slate-700 text-slate-400 hover:text-slate-200 transition-colors"
+                      className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md hover:bg-slate-700 text-slate-400 hover:text-rose-400 transition-colors"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -196,6 +196,54 @@ export default function HistorySidebar({
           </div>
         </div>
       </aside>
+
+      {/* Sleek Custom Delete Modal (Replaces browser alert) */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
+          <div className="relative w-full max-w-sm bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-2xl">
+            <button
+              onClick={() => setDeleteTarget(null)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                <Trash2 className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-slate-100">Delete Conversation</h3>
+                <p className="text-[11px] text-slate-400">This action cannot be undone.</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-300 mb-5 leading-relaxed">
+              Are you sure you want to delete <span className="font-medium text-slate-100">&quot;{deleteTarget.title || 'this conversation'}&quot;</span>?
+            </p>
+
+            <div className="flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setDeleteTarget(null)}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  onDeleteConversation(deleteTarget.id);
+                  setDeleteTarget(null);
+                }}
+                className="px-3.5 py-1.5 rounded-lg text-xs font-medium text-white bg-rose-600 hover:bg-rose-500 transition-colors shadow-sm"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
