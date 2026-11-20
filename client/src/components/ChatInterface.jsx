@@ -89,14 +89,16 @@ export default function ChatInterface({
       {/* Top Navigation Bar */}
       <header className="h-14 px-3 md:px-5 bg-slate-900 border-b border-slate-800 flex items-center justify-between z-10">
         <div className="flex items-center gap-2.5 min-w-0">
-          {/* Toggle Sidebar Button (Like ChatGPT / Gemini - Always Accessible) */}
-          <button
-            onClick={onToggleSidebar}
-            title={isSidebarOpen ? 'Hide Sidebar' : 'Show Sidebar'}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
-          >
-            <PanelLeft className="w-4 h-4" />
-          </button>
+          {/* Only show when sidebar is hidden/collapsed */}
+          {!isSidebarOpen && (
+            <button
+              onClick={onToggleSidebar}
+              title="Show Sidebar"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+            >
+              <PanelLeft className="w-4 h-4" />
+            </button>
+          )}
 
           <div className="flex flex-col min-w-0">
             <h2 className="text-xs md:text-sm font-semibold text-slate-100 truncate max-w-xs md:max-w-md">
