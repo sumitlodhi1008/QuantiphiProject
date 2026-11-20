@@ -81,7 +81,6 @@ Quantiphi_AIChat/
 │   │   ├── middleware/
 │   │   │   └── errorHandler.js     # Global error handling
 │   │   └── app.js                  # Express application setup
-│   ├── .env.example
 │   ├── package.json
 │   └── server.js                   # Server entrypoint
 │
