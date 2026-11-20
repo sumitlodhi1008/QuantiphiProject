@@ -2,12 +2,30 @@ const Conversation = require('../models/Conversation');
 const aiService = require('../services/aiService');
 const { generateTitleFromPrompt } = require('../services/promptService');
 
+// In-Memory Guest User Cache
+const guestUserCache = new Map();
+
+const getOrCreateGuestUser = (userId = 'guest_user_quantiphi') => {
+  if (!guestUserCache.has(userId)) {
+    guestUserCache.set(userId, {
+      userId,
+      createdAt: new Date(),
+      lastActive: new Date(),
+    });
+  } else {
+    guestUserCache.get(userId).lastActive = new Date();
+  }
+  return guestUserCache.get(userId);
+};
+
 /**
  * Handle Real-Time SSE Chat Streaming
  * POST /api/chat/stream
  */
 const streamChat = async (req, res, next) => {
-  const { prompt, tone = 'Professional', conversationId } = req.body;
+  const { prompt, tone = 'Professional', conversationId, userId: incomingUserId } = req.body;
+  const userId = incomingUserId || req.headers['x-user-id'] || 'guest_user_quantiphi';
+  getOrCreateGuestUser(userId);
 
   if (!prompt || typeof prompt !== 'string' || prompt.trim() === '') {
     return res.status(400).json({ error: 'Prompt is required and must be non-empty.' });
@@ -29,6 +47,7 @@ const streamChat = async (req, res, next) => {
 
     if (!conversation) {
       conversation = new Conversation({
+        userId,
         title: generateTitleFromPrompt(prompt),
         tone: normalizedTone,
         messages: [],
@@ -125,15 +144,23 @@ const streamChat = async (req, res, next) => {
  */
 const getConversations = async (req, res, next) => {
   try {
+    const userId = req.query.userId || req.headers['x-user-id'] || 'guest_user_quantiphi';
+    getOrCreateGuestUser(userId);
+
     const conversations = await Conversation.find()
       .sort({ updatedAt: -1 })
-      .select('_id title tone updatedAt messages');
+      .select('_id userId title tone updatedAt messages');
 
-    const formatted = conversations.map((conv) => ({
-      id: conv._id,
-      title: conv.title,
-      tone: conv.tone,
-      updatedAt: conv.updatedAt,
+    // Filter conversations for this guest user (or any default guest conversations)
+    const userConversations = (conversations || []).filter(
+      (c) => !c.userId || c.userId === userId || c.userId === 'guest_user_quantiphi'
+    );
+
+    const formatted = userConversations.map((conv) => ({
+      id: (conv._id || '').toString(),
+      title: conv.title || 'Untitled Conversation',
+      tone: conv.tone || 'Professional',
+      updatedAt: conv.updatedAt || new Date(),
       messageCount: conv.messages ? conv.messages.length : 0,
       preview:
         conv.messages && conv.messages.length > 0

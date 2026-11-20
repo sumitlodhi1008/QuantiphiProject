@@ -1,21 +1,47 @@
 import { useState, useEffect, useCallback } from 'react';
 
+const GUEST_USER_KEY = 'quantiphi_guest_user_id';
+
+export const getCachedGuestUserId = () => {
+  try {
+    let id = localStorage.getItem(GUEST_USER_KEY);
+    if (!id) {
+      id = 'guest_' + Math.random().toString(36).substring(2, 10);
+      localStorage.setItem(GUEST_USER_KEY, id);
+    }
+    return id;
+  } catch {
+    return 'guest_user_quantiphi';
+  }
+};
+
 export function useConversations() {
   const [conversations, setConversations] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const fetchConversations = useCallback(async () => {
+    setIsLoading(true);
     try {
-      const res = await fetch('/api/conversations');
+      const guestId = getCachedGuestUserId();
+      const res = await fetch(`/api/conversations?userId=${encodeURIComponent(guestId)}`, {
+        headers: {
+          'x-user-id': guestId,
+        },
+      });
       if (!res.ok) throw new Error('Failed to fetch conversations');
       const data = await res.json();
       if (data.success && Array.isArray(data.data)) {
         setConversations(data.data);
+        return data.data;
       }
+      return [];
     } catch (err) {
       console.error('Error fetching conversations:', err);
       setError(err.message);
+      return [];
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
@@ -49,7 +75,12 @@ export function useConversations() {
 
   const getConversationDetails = useCallback(async (id) => {
     try {
-      const res = await fetch(`/api/conversations/${id}`);
+      const guestId = getCachedGuestUserId();
+      const res = await fetch(`/api/conversations/${id}`, {
+        headers: {
+          'x-user-id': guestId,
+        },
+      });
       if (!res.ok) throw new Error('Failed to fetch conversation details');
       const data = await res.json();
       return data.data;
@@ -61,8 +92,12 @@ export function useConversations() {
 
   const deleteConversation = useCallback(async (id) => {
     try {
+      const guestId = getCachedGuestUserId();
       const res = await fetch(`/api/conversations/${id}`, {
         method: 'DELETE',
+        headers: {
+          'x-user-id': guestId,
+        },
       });
       if (!res.ok) throw new Error('Failed to delete conversation');
       setConversations((prev) => prev.filter((c) => c.id !== id));

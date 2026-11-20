@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import HistorySidebar from './components/HistorySidebar';
 import ChatInterface from './components/ChatInterface';
 import { useChatStream } from './hooks/useChatStream';
 import { useConversations } from './hooks/useConversations';
 
 export default function App() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const {
     conversations,
     fetchConversations,
@@ -27,7 +27,6 @@ export default function App() {
     loadConversation,
   } = useChatStream({
     onConversationCreated: (metadata) => {
-      // Instantly inject the new conversation into the sidebar list
       addOptimisticConversation(metadata);
       fetchConversations();
     },
@@ -35,6 +34,26 @@ export default function App() {
       fetchConversations();
     },
   });
+
+  // Restore previous active conversation on page refresh
+  useEffect(() => {
+    const restoreActiveChat = async () => {
+      const cachedId = localStorage.getItem('quantiphi_active_chat_id');
+      if (cachedId) {
+        try {
+          const conv = await getConversationDetails(cachedId);
+          if (conv) {
+            loadConversation(conv);
+          }
+        } catch {
+          // If conversation was deleted or not found, silently clear
+          localStorage.removeItem('quantiphi_active_chat_id');
+        }
+      }
+    };
+
+    restoreActiveChat();
+  }, [getConversationDetails, loadConversation]);
 
   // Select a past conversation thread
   const handleSelectConversation = async (id) => {
@@ -67,7 +86,7 @@ export default function App() {
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-slate-950 font-sans">
-      {/* Past Conversations Sidebar */}
+      {/* Past Conversations Sidebar with Collapse Toggle */}
       <HistorySidebar
         conversations={conversations}
         activeConversationId={conversationId}
@@ -75,7 +94,7 @@ export default function App() {
         onNewChat={handleNewChat}
         onDeleteConversation={handleDeleteConversation}
         isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
+        onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
       />
 
       {/* Main Interactive Chat Interface */}
@@ -86,8 +105,8 @@ export default function App() {
         onSelectTone={setTone}
         onSendMessage={sendMessage}
         onStopStreaming={stopStreaming}
-        onNewChat={handleNewChat}
         onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
+        isSidebarOpen={isSidebarOpen}
         currentConversation={currentConversation}
         activeTitle={activeTitle}
       />

@@ -1,13 +1,35 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { getCachedGuestUserId } from './useConversations';
+
+const ACTIVE_CHAT_KEY = 'quantiphi_active_chat_id';
 
 export function useChatStream({ onConversationCreated, onMessageFinished }) {
   const [messages, setMessages] = useState([]);
   const [isStreaming, setIsStreaming] = useState(false);
-  const [conversationId, setConversationId] = useState(null);
+  const [conversationId, setConversationId] = useState(() => {
+    try {
+      return localStorage.getItem(ACTIVE_CHAT_KEY) || null;
+    } catch {
+      return null;
+    }
+  });
   const [activeTitle, setActiveTitle] = useState('');
   const [tone, setTone] = useState('Professional');
   const [error, setError] = useState(null);
   const abortControllerRef = useRef(null);
+
+  // Sync active chat ID to localStorage cache
+  useEffect(() => {
+    try {
+      if (conversationId) {
+        localStorage.setItem(ACTIVE_CHAT_KEY, conversationId);
+      } else {
+        localStorage.removeItem(ACTIVE_CHAT_KEY);
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, [conversationId]);
 
   /**
    * Reset the current chat session
@@ -16,6 +38,9 @@ export function useChatStream({ onConversationCreated, onMessageFinished }) {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
+    try {
+      localStorage.removeItem(ACTIVE_CHAT_KEY);
+    } catch (e) {}
     setMessages([]);
     setConversationId(null);
     setActiveTitle('');
@@ -34,6 +59,9 @@ export function useChatStream({ onConversationCreated, onMessageFinished }) {
     setConversationId(id);
     setActiveTitle(conv.title || 'Conversation');
     setTone(conv.tone || 'Professional');
+    try {
+      localStorage.setItem(ACTIVE_CHAT_KEY, id);
+    } catch (e) {}
     setMessages(
       (conv.messages || []).map((m) => ({
         id: m._id || `m-${Date.now()}-${Math.random()}`,
@@ -57,7 +85,7 @@ export function useChatStream({ onConversationCreated, onMessageFinished }) {
       const activeTone = explicitTone || tone;
       setError(null);
 
-      // Optimistically create title from prompt immediately like ChatGPT / Gemini
+      // Optimistically create title from prompt immediately
       const cleanPrompt = promptText.trim();
       const optimisticTitle =
         cleanPrompt.length > 36 ? `${cleanPrompt.substring(0, 33)}...` : cleanPrompt;
@@ -91,12 +119,15 @@ export function useChatStream({ onConversationCreated, onMessageFinished }) {
       abortControllerRef.current = controller;
 
       try {
+        const guestId = getCachedGuestUserId();
         const response = await fetch('/api/chat/stream', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'x-user-id': guestId,
           },
           body: JSON.stringify({
+            userId: guestId,
             prompt: cleanPrompt,
             tone: activeTone,
             conversationId: conversationId,
@@ -151,7 +182,10 @@ export function useChatStream({ onConversationCreated, onMessageFinished }) {
                 const newId = parsed.conversationId.toString();
                 currentConvId = newId;
                 setConversationId(newId);
-                // Immediately register conversation so sidebar reflects it in real time
+                try {
+                  localStorage.setItem(ACTIVE_CHAT_KEY, newId);
+                } catch (e) {}
+
                 onConversationCreated?.({
                   id: newId,
                   conversationId: newId,
