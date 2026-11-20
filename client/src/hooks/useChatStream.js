@@ -4,6 +4,7 @@ export function useChatStream({ onConversationCreated, onMessageFinished }) {
   const [messages, setMessages] = useState([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [conversationId, setConversationId] = useState(null);
+  const [activeTitle, setActiveTitle] = useState('');
   const [tone, setTone] = useState('Professional');
   const [error, setError] = useState(null);
   const abortControllerRef = useRef(null);
@@ -17,6 +18,7 @@ export function useChatStream({ onConversationCreated, onMessageFinished }) {
     }
     setMessages([]);
     setConversationId(null);
+    setActiveTitle('');
     setIsStreaming(false);
     setError(null);
   }, []);
@@ -28,11 +30,13 @@ export function useChatStream({ onConversationCreated, onMessageFinished }) {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
-    setConversationId(conv._id || conv.id);
+    const id = (conv._id || conv.id || '').toString();
+    setConversationId(id);
+    setActiveTitle(conv.title || 'Conversation');
     setTone(conv.tone || 'Professional');
     setMessages(
       (conv.messages || []).map((m) => ({
-        id: m._id,
+        id: m._id || `m-${Date.now()}-${Math.random()}`,
         role: m.role,
         content: m.content,
         tone: m.tone,
@@ -53,11 +57,19 @@ export function useChatStream({ onConversationCreated, onMessageFinished }) {
       const activeTone = explicitTone || tone;
       setError(null);
 
+      // Optimistically create title from prompt immediately like ChatGPT / Gemini
+      const cleanPrompt = promptText.trim();
+      const optimisticTitle =
+        cleanPrompt.length > 36 ? `${cleanPrompt.substring(0, 33)}...` : cleanPrompt;
+      if (!activeTitle) {
+        setActiveTitle(optimisticTitle);
+      }
+
       // Create new user message object
       const userMessage = {
         id: `user-${Date.now()}`,
         role: 'user',
-        content: promptText.trim(),
+        content: cleanPrompt,
         tone: activeTone,
         timestamp: new Date().toISOString(),
       };
@@ -85,7 +97,7 @@ export function useChatStream({ onConversationCreated, onMessageFinished }) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            prompt: promptText.trim(),
+            prompt: cleanPrompt,
             tone: activeTone,
             conversationId: conversationId,
           }),
@@ -132,10 +144,20 @@ export function useChatStream({ onConversationCreated, onMessageFinished }) {
             }
 
             if (event === 'metadata') {
-              if (parsed.conversationId && parsed.conversationId !== currentConvId) {
-                currentConvId = parsed.conversationId;
-                setConversationId(parsed.conversationId);
-                onConversationCreated?.(parsed);
+              if (parsed.title) {
+                setActiveTitle(parsed.title);
+              }
+              if (parsed.conversationId) {
+                const newId = parsed.conversationId.toString();
+                currentConvId = newId;
+                setConversationId(newId);
+                // Immediately register conversation so sidebar reflects it in real time
+                onConversationCreated?.({
+                  id: newId,
+                  conversationId: newId,
+                  title: parsed.title || optimisticTitle,
+                  tone: parsed.tone || activeTone,
+                });
               }
             } else if (event === 'chunk') {
               if (parsed.delta) {
@@ -164,13 +186,12 @@ export function useChatStream({ onConversationCreated, onMessageFinished }) {
         } else {
           console.error('Error during chat stream:', err);
           setError(err.message || 'Failed to complete streaming response');
-          // Add error indicator in message
           setMessages((prev) =>
             prev.map((msg) =>
               msg.id === assistantMessageId && !msg.content
                 ? {
                     ...msg,
-                    content: `⚠️ *An error occurred: ${err.message || 'Unable to connect to server'}*`,
+                    content: `Unable to complete response: ${err.message || 'Connection error'}. Please try again.`,
                   }
                 : msg
             )
@@ -181,7 +202,7 @@ export function useChatStream({ onConversationCreated, onMessageFinished }) {
         abortControllerRef.current = null;
       }
     },
-    [conversationId, isStreaming, onConversationCreated, onMessageFinished, tone]
+    [activeTitle, conversationId, isStreaming, onConversationCreated, onMessageFinished, tone]
   );
 
   /**
@@ -198,6 +219,7 @@ export function useChatStream({ onConversationCreated, onMessageFinished }) {
     messages,
     isStreaming,
     conversationId,
+    activeTitle,
     tone,
     setTone,
     error,

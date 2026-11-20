@@ -56,7 +56,7 @@ const streamChat = async (req, res, next) => {
     // Send metadata event with conversationId and title
     res.write(
       `event: metadata\ndata: ${JSON.stringify({
-        conversationId: conversation._id,
+        conversationId: conversation._id.toString(),
         title: conversation.title,
         tone: normalizedTone,
       })}\n\n`

@@ -9,6 +9,7 @@ export default function App() {
   const {
     conversations,
     fetchConversations,
+    addOptimisticConversation,
     getConversationDetails,
     deleteConversation,
   } = useConversations();
@@ -17,6 +18,7 @@ export default function App() {
     messages,
     isStreaming,
     conversationId,
+    activeTitle,
     tone,
     setTone,
     sendMessage,
@@ -24,7 +26,9 @@ export default function App() {
     resetChat,
     loadConversation,
   } = useChatStream({
-    onConversationCreated: () => {
+    onConversationCreated: (metadata) => {
+      // Instantly inject the new conversation into the sidebar list
+      addOptimisticConversation(metadata);
       fetchConversations();
     },
     onMessageFinished: () => {
@@ -57,7 +61,9 @@ export default function App() {
     }
   };
 
-  const currentConversation = conversations.find((c) => c.id === conversationId);
+  const currentConversation = conversations.find(
+    (c) => c.id.toString() === (conversationId || '').toString()
+  );
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-slate-950 font-sans">
@@ -83,6 +89,7 @@ export default function App() {
         onNewChat={handleNewChat}
         onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
         currentConversation={currentConversation}
+        activeTitle={activeTitle}
       />
     </div>
   );

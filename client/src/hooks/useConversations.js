@@ -6,7 +6,6 @@ export function useConversations() {
   const [error, setError] = useState(null);
 
   const fetchConversations = useCallback(async () => {
-    setIsLoading(true);
     try {
       const res = await fetch('/api/conversations');
       if (!res.ok) throw new Error('Failed to fetch conversations');
@@ -17,9 +16,35 @@ export function useConversations() {
     } catch (err) {
       console.error('Error fetching conversations:', err);
       setError(err.message);
-    } finally {
-      setIsLoading(false);
     }
+  }, []);
+
+  const addOptimisticConversation = useCallback((newConv) => {
+    const convId = (newConv.id || newConv.conversationId || '').toString();
+    if (!convId) return;
+
+    setConversations((prev) => {
+      const existsIndex = prev.findIndex((c) => c.id.toString() === convId);
+      if (existsIndex >= 0) {
+        const updated = [...prev];
+        updated[existsIndex] = {
+          ...updated[existsIndex],
+          title: newConv.title || updated[existsIndex].title,
+          updatedAt: new Date().toISOString(),
+        };
+        return updated;
+      }
+      return [
+        {
+          id: convId,
+          title: newConv.title || 'New Conversation',
+          updatedAt: new Date().toISOString(),
+          messageCount: 1,
+          preview: '',
+        },
+        ...prev,
+      ];
+    });
   }, []);
 
   const getConversationDetails = useCallback(async (id) => {
@@ -57,6 +82,7 @@ export function useConversations() {
     isLoading,
     error,
     fetchConversations,
+    addOptimisticConversation,
     getConversationDetails,
     deleteConversation,
   };

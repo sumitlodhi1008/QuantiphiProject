@@ -4,7 +4,6 @@ import {
   Square,
   Menu,
   Download,
-  Plus,
   Bot,
   Code,
   Briefcase,
@@ -42,6 +41,7 @@ export default function ChatInterface({
   onNewChat,
   onToggleSidebar,
   currentConversation,
+  activeTitle = '',
 }) {
   const [inputPrompt, setInputPrompt] = useState('');
   const [isExportOpen, setIsExportOpen] = useState(false);
@@ -82,6 +82,8 @@ export default function ChatInterface({
     }
   };
 
+  const displayTitle = activeTitle || currentConversation?.title || 'New Conversation';
+
   return (
     <div className="flex-1 flex flex-col h-screen bg-slate-950 overflow-hidden">
       {/* Top Navigation Bar */}
@@ -96,7 +98,7 @@ export default function ChatInterface({
 
           <div className="flex flex-col min-w-0">
             <h2 className="text-sm font-semibold text-slate-100 truncate">
-              {currentConversation?.title || 'New Conversation'}
+              {displayTitle}
             </h2>
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
@@ -123,15 +125,6 @@ export default function ChatInterface({
           >
             <Download className="w-3.5 h-3.5 text-cyan-400" />
             <span className="hidden sm:inline">Export</span>
-          </button>
-
-          {/* New Chat Button */}
-          <button
-            onClick={onNewChat}
-            title="Start New Chat"
-            className="p-2 rounded-lg bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 transition-colors"
-          >
-            <Plus className="w-4 h-4 text-cyan-400" />
           </button>
         </div>
       </header>
