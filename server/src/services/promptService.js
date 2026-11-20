@@ -88,7 +88,7 @@ const generateTitleFromPrompt = async (prompt, geminiClient = null) => {
   // If Gemini API is available, generate a contextual 2-4 word title
   if (geminiClient) {
     try {
-      const model = geminiClient.getGenerativeModel({ model: 'gemini-1.5-flash' });
+      const model = geminiClient.getGenerativeModel({ model: 'gemini-flash-lite-latest' });
       const response = await model.generateContent(
         `Summarize this user question into a concise 2 to 4 word title for a chat sidebar (like ChatGPT/Gemini). Return ONLY the title, no quotes, no punctuation, no emojis:\n"${clean}"`
       );
