@@ -1,9 +1,6 @@
 const path = require('path');
-// Load environment variables from .env in server directory or root
-require('dotenv').config({ path: path.resolve(__dirname, '.env') });
-if (!process.env.GEMINI_API_KEY) {
-  require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
-}
+// Load environment variables exclusively from the root .env file
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
 const app = require('./src/app');
 const { connectDB } = require('./src/config/db');
