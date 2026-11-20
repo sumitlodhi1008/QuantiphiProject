@@ -81,9 +81,13 @@ Quantiphi_AIChat/
 │   │   ├── middleware/
 │   │   │   └── errorHandler.js     # Global error handling
 │   │   └── app.js                  # Express application setup
+│   ├── .env.example
 │   ├── package.json
 │   └── server.js                   # Server entrypoint
 │
+├── .env.example                # Template with blank variables for setup
+├── package.json
+├── run-dev.js                  # Cross-platform runner for npm run dev
 ├── prd.md                      # Product Requirements Document
 ├── architecture.md             # System Architecture Document
 ├── design_system.md            # Design System & UI/UX Tokens
