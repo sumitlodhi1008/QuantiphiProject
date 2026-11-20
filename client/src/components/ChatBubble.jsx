@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { User, Sparkles } from 'lucide-react';
+import { User, Bot } from 'lucide-react';
 import CodeBlock from './CodeBlock';
 
 export default function ChatBubble({ message, isStreaming = false }) {
@@ -14,30 +14,6 @@ export default function ChatBubble({ message, isStreaming = false }) {
       return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     } catch {
       return '';
-    }
-  };
-
-  const getToneBadge = (tone) => {
-    switch (tone) {
-      case 'Casual':
-        return (
-          <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-            Casual
-          </span>
-        );
-      case 'Concise':
-        return (
-          <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30">
-            Concise
-          </span>
-        );
-      case 'Professional':
-      default:
-        return (
-          <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/30">
-            Professional
-          </span>
-        );
     }
   };
 
@@ -54,31 +30,35 @@ export default function ChatBubble({ message, isStreaming = false }) {
       >
         {/* Avatar Icon */}
         <div
-          className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center shadow-md ${
+          className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${
             isUser
-              ? 'bg-gradient-to-tr from-cyan-600 to-blue-600 text-white'
-              : 'bg-slate-800 text-cyan-400 border border-slate-700'
+              ? 'bg-cyan-600 text-white'
+              : 'bg-slate-900 text-cyan-400 border border-slate-800'
           }`}
         >
-          {isUser ? <User className="w-4 h-4" /> : <Sparkles className="w-4 h-4 animate-pulse" />}
+          {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
         </div>
 
         {/* Message Bubble Container */}
         <div className="flex flex-col flex-grow min-w-0">
           <div
-            className={`relative px-4 py-3.5 rounded-2xl shadow-sm text-sm ${
+            className={`relative px-4 py-3.5 rounded-xl text-sm ${
               isUser
-                ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-tr-none'
+                ? 'bg-cyan-600 text-white rounded-tr-none'
                 : 'bg-slate-900 border border-slate-800 text-slate-100 rounded-tl-none'
             }`}
           >
             {/* Header / Tone Badge for AI */}
             {!isUser && (
               <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-800/80">
-                <span className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                <span className="text-xs font-semibold text-slate-300">
                   Assistant
                 </span>
-                {message.tone && getToneBadge(message.tone)}
+                {message.tone && (
+                  <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/25">
+                    {message.tone}
+                  </span>
+                )}
               </div>
             )}
 

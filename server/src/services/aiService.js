@@ -164,27 +164,24 @@ Should you require further elaboration or specific technical specifications, ple
       }
     } else if (tone === 'Casual') {
       if (lowerPrompt.includes('code') || lowerPrompt.includes('react') || lowerPrompt.includes('async')) {
-        responseText = `Hey there! 😊 Let's dive right into this!
-
-Here's a super clean snippet to get you up and running with **${prompt.trim()}**:
+        responseText = `Here is a clear snippet to help you with **${prompt.trim()}**:
 
 \`\`\`javascript
-// Super simple and fun async demo!
-const fetchCoolData = async () => {
-  console.log("Fetching awesome vibes...");
-  const res = await fetch("https://api.example.com/vibes");
+// Example async data fetcher
+const fetchData = async () => {
+  const res = await fetch("https://api.example.com/data");
   const data = await res.json();
   return data;
 };
 \`\`\`
 
-Pretty neat, right? Feel free to tweak this snippet however you like! Got any questions? Just ask! 🚀`;
+You can customize this snippet for your specific endpoints or parameters. Let me know if you need any adjustments.`;
       } else {
-        responseText = `Hey! 👋 Great question about: *"**${prompt.trim()}**"*.
+        responseText = `Regarding your inquiry on: **${prompt.trim()}**
 
-I'm totally with you on this. Building real-time chat apps is super satisfying once you see those words stream in live! Having different tones like this casual vibe makes conversations feel way more human and friendly.
+Building real-time conversational applications with streaming responses makes user interactions feel direct and responsive. With dynamic tone calibration, you can effortlessly switch between executive, conversational, and direct styles.
 
-What should we explore next? I'm all ears! 🎉`;
+Feel free to ask if you would like to explore another scenario.`;
       }
     } else {
       // Concise tone

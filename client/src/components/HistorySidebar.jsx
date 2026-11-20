@@ -6,7 +6,6 @@ import {
   Trash2,
   X,
   Bot,
-  Sparkles,
 } from 'lucide-react';
 
 export default function HistorySidebar({
@@ -69,13 +68,13 @@ export default function HistorySidebar({
         {/* Header / Brand */}
         <div className="p-4 border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white shadow-lg shadow-cyan-500/20">
+            <div className="w-8 h-8 rounded-lg bg-cyan-600 flex items-center justify-center text-white">
               <Bot className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-sm font-bold text-slate-100 flex items-center gap-1.5">
+              <h1 className="text-sm font-semibold text-slate-100 flex items-center gap-1.5">
                 Quantiphi AI
-                <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
                   v1.0
                 </span>
               </h1>
@@ -97,7 +96,7 @@ export default function HistorySidebar({
               onNewChat();
               if (window.innerWidth < 1024) onClose();
             }}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-medium text-xs shadow-md shadow-cyan-500/20 transition duration-200 active:scale-[0.98]"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-medium text-xs transition-colors duration-150 active:scale-[0.99]"
           >
             <Plus className="w-4 h-4" />
             <span>New Conversation</span>
@@ -113,7 +112,7 @@ export default function HistorySidebar({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search conversations..."
-              className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-slate-950/70 border border-slate-800 focus:border-cyan-500 focus:outline-none text-xs text-slate-200 placeholder-slate-500 transition"
+              className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-slate-950/70 border border-slate-800 focus:border-cyan-500 focus:outline-none text-xs text-slate-200 placeholder-slate-500 transition-colors"
             />
           </div>
         </div>
@@ -126,9 +125,9 @@ export default function HistorySidebar({
                 <p>No conversations match &quot;{searchQuery}&quot;</p>
               ) : (
                 <div className="flex flex-col items-center gap-2">
-                  <MessageSquare className="w-8 h-8 opacity-40 text-slate-400" />
+                  <MessageSquare className="w-7 h-7 text-slate-600" />
                   <p>No past conversations yet.</p>
-                  <p className="text-[11px] text-slate-600">Start a chat to see history!</p>
+                  <p className="text-[11px] text-slate-600">Start a chat to see history</p>
                 </div>
               )}
             </div>
@@ -142,9 +141,9 @@ export default function HistorySidebar({
                     onSelectConversation(conv.id);
                     if (window.innerWidth < 1024) onClose();
                   }}
-                  className={`group relative flex items-center justify-between px-3 py-2.5 rounded-xl text-xs cursor-pointer transition-all duration-200 ${
+                  className={`group relative flex items-center justify-between px-3 py-2.5 rounded-xl text-xs cursor-pointer transition-colors duration-150 ${
                     isActive
-                      ? 'bg-slate-800 text-cyan-400 border border-slate-700/80 shadow-sm'
+                      ? 'bg-slate-800 text-cyan-400 border border-slate-700/80'
                       : 'text-slate-300 hover:bg-slate-800/50 hover:text-white border border-transparent'
                   }`}
                 >
@@ -173,7 +172,7 @@ export default function HistorySidebar({
                       }
                     }}
                     title="Delete Conversation"
-                    className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 transition"
+                    className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md hover:bg-slate-700 text-slate-400 hover:text-slate-200 transition-colors"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -185,10 +184,9 @@ export default function HistorySidebar({
 
         {/* Footer info */}
         <div className="p-3 border-t border-slate-800 text-center">
-          <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-500">
-            <Sparkles className="w-3 h-3 text-cyan-500" />
-            <span>Built for Quantiphi Vibe Coding</span>
-          </div>
+          <span className="text-[11px] text-slate-500">
+            Quantiphi AI Assistant
+          </span>
         </div>
       </aside>
     </>
