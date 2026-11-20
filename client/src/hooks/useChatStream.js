@@ -3,6 +3,44 @@ import { getCachedGuestUserId } from './useConversations';
 
 const ACTIVE_CHAT_KEY = 'quantiphi_active_chat_id';
 
+function extractContextualTitle(rawPrompt) {
+  if (!rawPrompt) return 'New Conversation';
+  let cleaned = rawPrompt.toLowerCase().trim();
+
+  if (/^(hi|hii|hiii|hello|hey)/i.test(cleaned)) {
+    if (cleaned.includes('gemini') || cleaned.includes('ai') || cleaned.includes('what can you do')) {
+      return 'Assistant Introduction';
+    }
+    if (cleaned.split(/\s+/).length <= 4) {
+      return 'General Greeting';
+    }
+  }
+
+  const stopPhrases = [
+    /^(can you\s+)?(please\s+)?(tell me\s+)?(what is\s+|what are\s+|explain\s+|describe\s+|how to\s+|how does\s+)/i,
+    /^(give me\s+)?(write\s+(a\s+|some\s+)?)/i,
+    /\b(in details|in detail|briefly|step by step|please)\b/gi,
+  ];
+
+  for (const regex of stopPhrases) {
+    cleaned = cleaned.replace(regex, '').trim();
+  }
+
+  const words = cleaned
+    .replace(/[^\w\s-]/g, '')
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 4);
+
+  if (words.length === 0) return 'General Inquiry';
+
+  const titleCased = words
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+
+  return titleCased.length > 32 ? `${titleCased.substring(0, 30)}...` : titleCased;
+}
+
 export function useChatStream({ onConversationCreated, onMessageFinished }) {
   const [messages, setMessages] = useState([]);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -85,10 +123,9 @@ export function useChatStream({ onConversationCreated, onMessageFinished }) {
       const activeTone = explicitTone || tone;
       setError(null);
 
-      // Optimistically create title from prompt immediately
+      // Optimistically create contextual title immediately
       const cleanPrompt = promptText.trim();
-      const optimisticTitle =
-        cleanPrompt.length > 36 ? `${cleanPrompt.substring(0, 33)}...` : cleanPrompt;
+      const optimisticTitle = extractContextualTitle(cleanPrompt);
       if (!activeTitle) {
         setActiveTitle(optimisticTitle);
       }

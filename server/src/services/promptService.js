@@ -1,6 +1,7 @@
 /**
  * Prompt & Tone Management Service
- * Implements "The Vibe Check" system instruction modifier.
+ * Implements "The Vibe Check" system instruction modifier
+ * and contextual AI conversation title generation (ChatGPT / Gemini style).
  */
 
 const TONE_SYSTEM_INSTRUCTIONS = {
@@ -32,18 +33,80 @@ const getSystemInstructionForTone = (tone = 'Professional') => {
 };
 
 /**
- * Builds a clean prompt title from the first message
- * @param {string} prompt
- * @returns {string}
+ * Heuristic topic extractor that turns raw questions into neat 2-4 word titles
  */
-const generateTitleFromPrompt = (prompt) => {
-  if (!prompt) return 'New Conversation';
-  const clean = prompt.trim().replace(/[\r\n]+/g, ' ');
-  return clean.length > 40 ? `${clean.substring(0, 37)}...` : clean;
+const formatContextualFallbackTitle = (rawPrompt) => {
+  if (!rawPrompt) return 'New Conversation';
+
+  let cleaned = rawPrompt.toLowerCase().trim();
+
+  // Greetings check
+  if (/^(hi|hii|hiii|hello|hey|good\s+(morning|evening|afternoon)|howdy)/i.test(cleaned)) {
+    if (cleaned.includes('gemini') || cleaned.includes('ai') || cleaned.includes('what can you do') || cleaned.includes('who are you')) {
+      return 'Assistant Introduction';
+    }
+    if (cleaned.split(/\s+/).length <= 4) {
+      return 'General Greeting';
+    }
+  }
+
+  // Common filler patterns to strip
+  const stopPhrases = [
+    /^(can you\s+)?(please\s+)?(tell me\s+)?(what is\s+|what are\s+|explain\s+|describe\s+|how to\s+|how does\s+)/i,
+    /^(give me\s+)?(write\s+(a\s+|some\s+)?)/i,
+    /\b(in details|in detail|briefly|step by step|please)\b/gi,
+  ];
+
+  for (const regex of stopPhrases) {
+    cleaned = cleaned.replace(regex, '').trim();
+  }
+
+  // Capitalize remaining words into Title Case
+  const words = cleaned
+    .replace(/[^\w\s-]/g, '')
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 4);
+
+  if (words.length === 0) return 'General Inquiry';
+
+  const titleCased = words
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+
+  return titleCased.length > 32 ? `${titleCased.substring(0, 30)}...` : titleCased;
+};
+
+/**
+ * Generates context-based title using Gemini/AI when available
+ * or heuristic extraction, exactly like ChatGPT & Gemini.
+ */
+const generateTitleFromPrompt = async (prompt, geminiClient = null) => {
+  if (!prompt || !prompt.trim()) return 'New Conversation';
+  const clean = prompt.trim();
+
+  // If Gemini API is available, generate a contextual 2-4 word title
+  if (geminiClient) {
+    try {
+      const model = geminiClient.getGenerativeModel({ model: 'gemini-1.5-flash' });
+      const response = await model.generateContent(
+        `Summarize this user question into a concise 2 to 4 word title for a chat sidebar (like ChatGPT/Gemini). Return ONLY the title, no quotes, no punctuation, no emojis:\n"${clean}"`
+      );
+      const aiTitle = response.response.text()?.trim().replace(/["\n\r.]/g, '');
+      if (aiTitle && aiTitle.length >= 3 && aiTitle.length <= 36) {
+        return aiTitle;
+      }
+    } catch {
+      // Fall through to heuristic if API fails or rate-limits
+    }
+  }
+
+  return formatContextualFallbackTitle(clean);
 };
 
 module.exports = {
   TONE_SYSTEM_INSTRUCTIONS,
   getSystemInstructionForTone,
   generateTitleFromPrompt,
+  formatContextualFallbackTitle,
 };

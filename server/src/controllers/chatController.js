@@ -46,9 +46,10 @@ const streamChat = async (req, res, next) => {
     }
 
     if (!conversation) {
+      const generatedTitle = await generateTitleFromPrompt(prompt, aiService.geminiClient);
       conversation = new Conversation({
         userId,
-        title: generateTitleFromPrompt(prompt),
+        title: generatedTitle,
         tone: normalizedTone,
         messages: [],
       });
